@@ -2,91 +2,94 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-struct Stack{
-    int top;
-    int size;
-    int *arr;
+struct Node{
+    int val;
+    struct Node* next;
 };
 
-void init(struct Stack* st,int s){
-    st->size=s;
-    st->top=-1;
-    st->arr=(int*)(malloc(sizeof(int)*s));
+struct Stack{
+    struct Node* top;
+};
+
+void init(struct Stack* st){
+    st->top=NULL;
 }
-void push(struct Stack* st,int ele){
-    if(st->top==st->size-1){
-        int* new_arr=(int*)malloc(sizeof(int)*(2*st->size));
-        for(int i=0;i<st->size;i++){
-            new_arr[i]=st->arr[i];
-        }
-        free(st->arr);
-        st->arr=new_arr;
-        st->size=2*st->size;
+
+void push(struct Stack* st,int x){
+    if(st->top==NULL){
+        st->top=(struct Node*)malloc(sizeof(struct Node));
+        st->top->val=x;
+        st->top->next=NULL;
+        return;
     }
-    st->top++;
-    st->arr[st->top]=ele;
+    struct Node* temp=(struct Node*)malloc(sizeof(struct Node));
+    temp->val=x;
+    temp->next=st->top;
+    st->top=temp;
 }
 
 void pop(struct Stack* st){
-    if(st->top==-1) return;
-    st->top--;
+    if(st->top==NULL) return;
+    struct Node* ptr=st->top;
+    st->top=st->top->next;
+    free(ptr);
 }
 
-int peek(struct Stack *st){
-    if(st->top==-1) return -1;
-    return st->arr[st->top];
+int top(struct Stack* st){
+    if(st->top==NULL) return -1;
+    return st->top->val;
 }
 
-bool isEmpty(struct Stack* st){
-    return st->top==-1;
+bool empty(struct Stack* st){
+    return st->top==NULL;
 }
-
 
 typedef struct {
-   struct Stack s1,s2;
+    struct Stack* s1;
+    struct Stack *s2;
 } MyQueue;
 
-MyQueue q;
+MyQueue *q;
 MyQueue* myQueueCreate() {
-    init(&q.s1,10);
-    init(&q.s2,10);
-    return &q;
+    q=(MyQueue*)malloc(sizeof(MyQueue));
+    q->s1=(struct Stack*)malloc(sizeof(struct Stack));
+    q->s2=(struct Stack*)malloc(sizeof(struct Stack));
+    init(q->s1);
+    init(q->s2);
+    return q;
 }
 
 void myQueuePush(MyQueue* obj, int x) {
-    while(!isEmpty(&obj->s1)){
-        push(&obj->s2,peek(&obj->s1));
-        pop(&obj->s1);
+    while(obj->s1->top){
+        push(obj->s2,obj->s1->top->val);
+        pop(obj->s1);
+    }
+    push(obj->s1,x);
+    while(obj->s2->top){
+        push(obj->s1,obj->s2->top->val);
+        pop(obj->s2);
+        
     }
 
-    push(&obj->s1,x);
-    while(!isEmpty(&obj->s2)){
-        push(&obj->s1,peek(&obj->s2));
-        pop(&obj->s2);
-    }
-    
 }
 
 int myQueuePop(MyQueue* obj) {
-    int a=peek(&obj->s1);
-    pop(&obj->s1);
+    int a=top(obj->s1);
+    pop(obj->s1);
     return a;
 }
 
 int myQueuePeek(MyQueue* obj) {
-    return peek(&obj->s1);
+    return top(obj->s1);
 }
 
 bool myQueueEmpty(MyQueue* obj) {
-    return isEmpty(&obj->s1);
+    return empty(obj->s1);
 }
 
 void myQueueFree(MyQueue* obj) {
-    while(!isEmpty(&obj->s1)){
-        pop(&obj->s1);
-    }
-}
-
-int main(){
-    return 0;
+    while(obj->s1->top){
+        pop(obj->s1);
+    }  
+     
 }
